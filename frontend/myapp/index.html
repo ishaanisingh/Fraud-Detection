@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credit Card Fraud Detection</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            min-height: 100vh;
+            padding-bottom: 60px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #0D0D0D 0%, #1a1a1a 100%);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            color: white; 
+        }
+
+        header nav {
+            margin-top: 15px;
+        }
+
+        header nav a {
+            color: white;
+            margin: 0 20px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 1.1em;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        header nav a:hover {
+            background-color: rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        header nav a.active {
+            background-color: rgba(102, 126, 234, 0.5);
+        }
+
+        main {
+            padding: 40px 20px;
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .intro {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .intro h2 {
+            font-size: 2.2em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .intro p {
+            font-size: 1.2em;
+            color: #555;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .flip-card {
+            background-color: transparent;
+            width: 350px;
+            height: 220px;
+            perspective: 1000px;
+            margin: 30px auto;
+        }
+
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
+        }
+
+        .flip-card:hover .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-front, .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flip-card-front img, .flip-card-back img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; 
+            border-radius: 20px;
+        }
+
+        .flip-card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .button-container {
+            margin-top: 35px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .black-btn {
+            background: linear-gradient(135deg, #000 0%, #434343 100%);
+            color: #fff;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            border: none;
+            cursor: pointer;
+        }
+
+        .black-btn:hover {
+            background: linear-gradient(135deg, #434343 0%, #000 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 25px rgba(0,0,0,0.4);
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin: 20px auto;
+            max-width: 900px;
+        }
+
+        .content-card h2 {
+            font-size: 2em;
+            color: #2c3e50;
+            margin-bottom: 25px;
+        }
+
+        .content-card p {
+            font-size: 1.1em;
+            color: #555;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        footer {
+            background: linear-gradient(135deg, #0D0D0D 0%, #1a1a1a 100%);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+            font-size: 1.1em;
+        }
+
+        table {
+            width: 90%;
+            margin: 30px auto;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+
+        th, td {
+            border: 1px solid #e0e0e0;
+            padding: 15px;
+            text-align: left;
+        }
+
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.8em; }
+            header nav a { margin: 5px 10px; font-size: 1em; }
+            .flip-card { width: 280px; height: 180px; }
+            .button-container { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>FraudDetect</h1>
+        <nav>
+            <a href="#home" class="nav-link active" onclick="showPage('home')">Home</a>
+            <a href="#dataset" class="nav-link" onclick="showPage('dataset')">Dataset</a>
+            <a href="#prediction" class="nav-link" onclick="showPage('prediction')">Predictions</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="home" class="page active">
+            <div class="intro">
+                <h2>Welcome to the Credit Card Fraud Detection Project</h2>
+                <p>This project aims to detect fraudulent transactions using AI/ML algorithms. Navigate to see the dataset or predictions.</p>
+                
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <img src="image.jpeg.jpg" alt="Credit Card Front">
+                        </div>
+                        <div class="flip-card-back">
+                            <img src="image2.jpeg.jpg" alt="Credit Card Back">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="button-container">
+                    <a href="#dataset" class="black-btn" onclick="showPage('dataset')">View Dataset Overview</a>
+                    <a href="#prediction" class="black-btn" onclick="showPage('prediction')">Transaction Representation</a>
+                </div>
+            </div>
+        </section>
+
+        <section id="dataset" class="page">
+            <div class="content-card" style="max-width: 1100px;">
+                <h2>Live Model Validation</h2>
+                <p>Comparing actual historical data against our model's predictions.</p>
+                
+                <div style="text-align: right; margin-bottom: 15px;">
+                    <button onclick="loadDataset()" class="black-btn" style="padding: 10px 20px; font-size: 0.9em;">Refresh Data</button>
+                </div>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Amount ($)</th>
+                            <th>Actual Status</th>
+                            <th>Model Prediction</th>
+                            <th>Result</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dataset-body">
+                        <tr><td colspan="5" style="text-align:center;">Click "Refresh Data" to load samples...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="prediction" class="page">
+            <div class="content-card" style="margin-top: 30px;">
+                <h2>Model Accuracy Dashboard</h2>
+                <p>Visualizing performance and specific error types.</p>
+                
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <button onclick="loadModelStats()" class="black-btn" style="background: #4a4a4a;">Load Performance Graphs</button>
+                </div>
+
+                <div style="display: flex; flex-wrap: wrap; gap: 20px; justify-content: center;">
+                    
+                    <div style="flex: 1; min-width: 300px; height: 350px;">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+
+                    <div style="flex: 1; min-width: 300px; height: 350px;">
+                        <canvas id="errorChart"></canvas>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; FraudDetect | Team : T-036</p>
+    </footer>
+
+    <script>
+        // --- 1. NAVIGATION ---
+        function showPage(pageName) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+            document.getElementById(pageName).classList.add('active');
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            navLinks.forEach(link => link.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        window.addEventListener('hashchange', function() {
+            const hash = window.location.hash.substring(1) || 'home';
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+            const activePage = document.getElementById(hash);
+            if (activePage) activePage.classList.add('active');
+        });
+
+        // --- 2. DATASET TABLE LOGIC ---
+        async function loadDataset() {
+            const tableBody = document.getElementById('dataset-body');
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Loading data...</td></tr>';
+
+            try {
+                const response = await fetch('http://localhost:8000/api/validation-data/');
+                const json = await response.json();
+
+                if (json.error) {
+                    tableBody.innerHTML = `<tr><td colspan="5" style="color:red;">Error: ${json.error}</td></tr>`;
+                    return;
+                }
+
+                tableBody.innerHTML = '';
+                json.data.forEach(row => {
+                    const tr = document.createElement('tr');
+                    
+                    const actualBadge = row.actual === "Fraud" 
+                        ? '<span style="background:#f8d7da; color:#721c24; padding:5px 10px; border-radius:15px;">Fraud</span>' 
+                        : '<span style="background:#d4edda; color:#155724; padding:5px 10px; border-radius:15px;">Legitimate</span>';
+
+                    const predBadge = row.predicted === "Fraud" 
+                        ? '<span style="background:#f8d7da; color:#721c24; padding:5px 10px; border-radius:15px;">Fraud</span>' 
+                        : '<span style="background:#d4edda; color:#155724; padding:5px 10px; border-radius:15px;">Legitimate</span>';
+
+                    const matchIcon = row.match ? '✅ Correct' : '❌ Missed';
+
+                    tr.innerHTML = `<td>${row.time}</td><td>$${row.amount.toFixed(2)}</td><td>${actualBadge}</td><td>${predBadge}</td><td>${matchIcon}</td>`;
+                    tableBody.appendChild(tr);
+                });
+            } catch (error) {
+                console.error(error);
+                tableBody.innerHTML = '<tr><td colspan="5" style="color:red;">Failed to connect to server.</td></tr>';
+            }
+        }
+
+        // --- 3. DASHBOARD GRAPH LOGIC ---
+        let performanceChart = null;
+        let errorChart = null; // New chart variable
+
+        async function loadModelStats() {
+            const ctx1 = document.getElementById('performanceChart').getContext('2d');
+            const ctx2 = document.getElementById('errorChart').getContext('2d'); // New context
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/validation-data/');
+                const json = await response.json();
+
+                if (json.error) { alert("Error: " + json.error); return; }
+                if (!json.stats) { alert("Backend not returning stats."); return; }
+
+                // Destroy old charts
+                if (performanceChart) performanceChart.destroy();
+                if (errorChart) errorChart.destroy();
+
+                // 1. Draw Bar Chart (Distribution)
+                performanceChart = new Chart(ctx1, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Fraud Transactions', 'Legitimate Transactions'],
+                        datasets: [
+                            {
+                                label: 'Actual Count',
+                                data: [json.stats.actual_fraud, json.stats.actual_legit],
+                                backgroundColor: '#2c3e50'
+                            },
+                            {
+                                label: 'Predicted Count',
+                                data: [json.stats.pred_fraud, json.stats.pred_legit],
+                                backgroundColor: '#e74c3c'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { title: { display: true, text: 'Overall Distribution' } }
+                    }
+                });
+
+                // 2. Draw Doughnut Chart (Error Analysis)
+                errorChart = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Correct Predictions', 'False Alarms (Wrongly Flagged)', 'Missed Fraud (Dangerous!)'],
+                        datasets: [{
+                            data: [
+                                json.stats.correct_count, 
+                                json.stats.false_alarm, 
+                                json.stats.missed_fraud
+                            ],
+                            backgroundColor: [
+                                '#27ae60', // Green (Correct)
+                                '#f39c12', // Orange (False Alarm)
+                                '#c0392b'  // Red (Missed Fraud)
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            title: { display: true, text: 'Where the Model Went Wrong' },
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+
+            } catch (error) {
+                console.error(error);
+                alert("Failed to connect to backend.");
+            }
+        }
+    </script>
+</body>
+</html>

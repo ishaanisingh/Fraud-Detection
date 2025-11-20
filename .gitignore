@@ -1,0 +1,21 @@
+# Python internals
+__pycache__/
+*.py[cod]
+
+# Django
+db.sqlite3
+.env
+/media
+
+# Virtual Env
+venv/
+.venv/
+
+# Editor directories
+.vscode/
+.idea/
+.DS_Store
+
+# Data & ML Models
+*.csv
+*.pkl
